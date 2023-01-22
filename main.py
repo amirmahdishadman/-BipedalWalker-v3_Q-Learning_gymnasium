@@ -2,12 +2,34 @@ import matplotlib.pyplot as graph
 import gymnasium as gym
 from bipedal_walker import BipedalWalker
 from qlearning import QLearningAgent
+import numpy as np
+
+#add for load saved q-tables:
+Load_Q_table=False
+
+
+
 
 MAX_EPISODES = 1000
 MAX_TIMESTEPS = 500
 gamma = 0.99
 alpha = 0.1
 bipedalWalker = BipedalWalker()
+
+
+#saving commands
+# load=input("if you want load enter file name else enter no:\n")
+# save_path=input("enter the name you want save file as : \n")
+
+
+# if(load=="no"):
+#     Load_Q_table=False
+# else:
+#     loaded_qtable = np.load(load,allow_pickle=True)
+#     Load_Q_table=True
+
+
+
 visualize = input("Visualize? [y/n]\n")
 if visualize == 'y':
     RENDER_MODE = "human"
@@ -67,4 +89,8 @@ for episode in range(1, MAX_EPISODES + 1):
     episode_score = runEpisode(MAX_TIMESTEPS, bipedalWalker, env, qLearning, episode)
     plotEpisode(myGraph, xval, yval, episode_score, plotLine, episode)
     print("plot_ends \n ________________________________________________________________")
+
+
+#saving qvalues
+# np.save(save_path, np.array(dict(qLearning.QValues)))
 env.close()
