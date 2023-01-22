@@ -1,188 +1,70 @@
-import numpy as np
-import random
-import gymnasium as gym
-import math
-from collections import defaultdict, deque
 import matplotlib.pyplot as graph
+import gymnasium as gym
+from bipedal_walker import BipedalWalker
+from qlearning import QLearningAgent
 
-ENV = "BipedalWalker-v3"
-RENDER_MODE=str
+MAX_EPISODES = 1000
+MAX_TIMESTEPS = 500
+gamma = 0.99
+alpha = 0.1
+bipedalWalker = BipedalWalker()
+visualize = input("Visualize? [y/n]\n")
+if visualize == 'y':
+    RENDER_MODE = "human"
+else:
+    RENDER_MODE = None
+env = gym.make("BipedalWalker-v3", render_mode=RENDER_MODE)
+state , info = env.reset(seed=42)
+qLearning = QLearningAgent(gamma, alpha)
 
-
-EPISODES = 1000
-GAMMA =  0.99
-ALPHA = 0.01
-
-
-HIGHSCORE = -200
-
-# stateBounds = [(0, math.pi),
-#            (-2,2),
-#            (-1,1),
-#            (-1,1),
-#            (0,math.pi),
-#            (-2,2),
-#            (0, math.pi),
-#            (-2,2),
-#            (0,1),
-#            (0, math.pi),
-#            (-2, 2),
-#            (0, math.pi),
-#            (-2, 2),
-#            (0, 1)]
-
-
-stateBounds=[ (3.14, -3.14), 
-(5.0, -5.0), 
-(5.0, -5.0),
-(5.0, -5.0),
-(3.14, -3.14),
-(5.0, -5.0), 
-(3.14, -3.14), 
-(5.0, -5.0), 
-(5.0, -0.0),
-(3.14, -3.14), 
-(5.0, -5.0), 
-(3.14, -3.14),
-(5.0, -5.0),
-(5.0, -0.0), 
-(1.0, -1.0), 
-(1.0, -1.0),
-(1.0, -1.0), 
-(1.0, -1.0),
-(1.0, -1.0),
-(1.0, -1.0),
-(1.0, -1.0), 
-(1.0, -1.0), 
-(1.0, -1.0), 
-(1.0, -1.0)
- ]
-
-
-
-actionBounds = (-1, 1)
-
-
-def updateQTable (Qtable, state, action, reward, nextState=None):
-    global ALPHA
-    global GAMMA
-
-    current = Qtable[state][action]  
-    qNext = np.max(Qtable[nextState]) if nextState is not None else 0
-    target = reward + (GAMMA * qNext)
-    new_value = current + (ALPHA * (target - current))
-    return new_value
-
-def getNextAction(qTable, epsilon, state):
-
-    if random.random() < epsilon:
-
-        action = ()
-        for i in range (0, 4):
-            action += (random.randint(0, 9),)
-
-    else:
-
-        action = np.unravel_index(np.argmax(qTable[state]), qTable[state].shape)
-
-    return action
-
-def discretizeState(state):
-    # print(state)
-    discreteState = []
-    for i in range(len(state)):
-        index = int((state[i]-stateBounds[i][0])  / (stateBounds[i][1]-stateBounds[i][0])*19)
-        discreteState.append(index)
-    
-    return tuple(discreteState)
-
-
-def convertNextAction(nextAction):
-    action = []
-
-    for i in range(len(nextAction)):
-
-        nextVal = nextAction[i] / 9 * 2 - 1
-
-        action.append(nextVal)
-
-    return tuple(action)
+myGraph = graph.figure()
+xval, yval = [], []
+mySubPlot = myGraph.add_subplot()
+graph.xlabel("Episode #")
+graph.ylabel("Score")
+graph.title("Scores vs Episode")
+plotLine, = mySubPlot.plot(xval, yval)
+mySubPlot.set_xlim([0, MAX_EPISODES])
+mySubPlot.set_ylim([-200, 300])
 
 def plotEpisode(myGraph, xval, yval, epScore, plotLine, i):
 
     xval.append(i)
     yval.append(epScore)
-
     plotLine.set_xdata(xval)
     plotLine.set_ydata(yval)
-    myGraph.savefig("./plot")
+    myGraph.savefig("./ScoreEpisodePlot")
 
-
-
-def runAlgorithmStep(env, i, qTable):
-
-    global HIGHSCORE
-
-    env_R=env.reset()[0:14]
-    env_R=env_R[0]
-    state = discretizeState(env_R)
-    total_reward=  0
-    epsilon = 1.0 / ( i * .004)
-    iterate=0
-    while True:
-        # iterate+=1
-        nextAction = convertNextAction(getNextAction(qTable, epsilon, state))
-        nextActionDiscretized = getNextAction(qTable, epsilon, state)
-        nextState, reward, done, nn, info = env.step(nextAction)
-        nextState = discretizeState(nextState[0:14])
+def runEpisode(MAX_TIMESTEPS, bipedalWalker, env, qLearning, episode):
+    state = bipedalWalker.normalizeState(env.reset()[0:14][0])
+    total_reward = 0
+    print(f"\n\nEpisode {episode}: ========================================================================")
+    for step in range(MAX_TIMESTEPS):
+        action = qLearning.getAction(state)
+        next_state , reward , terminated , truncated , _ = env.step(bipedalWalker.denormalizeAction(action))
+        next_state = bipedalWalker.normalizeState(next_state[0:14])
+        qLearning.update(state, action, next_state, reward, alpha, gamma)
+        print(f"\t\treward: {reward} for action {action}")
         total_reward += reward
-        qTable[state][nextActionDiscretized] = updateQTable(qTable, state, nextActionDiscretized, reward, nextState)
-        state = nextState
-        # if(iterate>500):
-        #     break
+        done = terminated or truncated or step == MAX_TIMESTEPS -1
         if done:
+            # TODO [We can update the policy here if we use Policy extraction]
+            state , info = env.reset()
             break
-    print("total_revard= "+str(total_reward))
-    if total_reward > HIGHSCORE:
-
-        HIGHSCORE = total_reward
-
+    print(f"total_reward = {total_reward}")
+    if total_reward > bipedalWalker.highscore:
+        bipedalWalker.highscore = total_reward
     return total_reward
-    
-def main():
-
-    global HIGHSCORE
-    
-    visualize = input("Visualize? [y/n]\n")
-
-    if visualize == 'y':
-        RENDER_MODE = "human"
-    else:
-        RENDER_MODE = None
-
-    env = gym.make(ENV,render_mode=RENDER_MODE)
-
-    qTable = defaultdict( lambda: np.zeros((10, 10, 10, 10)))
-
-    myGraph = graph.figure()
-    xval, yval = [], []
-    mySubPlot = myGraph.add_subplot()
-    graph.xlabel("Episode #")
-    graph.ylabel("Score")
-    graph.title("Scores vs Episode")
-    plotLine, = mySubPlot.plot(xval, yval)
-    mySubPlot.set_xlim([0, EPISODES])
-    mySubPlot.set_ylim([-220, -80])
 
 
-    for i in range(1, EPISODES + 1):
 
-        epScore = runAlgorithmStep(env, i, qTable)
-        print("Episode finished. Now plotting..")
-        plotEpisode(myGraph, xval, yval, epScore, plotLine, i)
-        print("plot_ends \n ________________________________________________________________")
-    
-    print("All episodes finished. Highest score achieved: " + str(HIGHSCORE))
+# ========================================= RUN ALGORITHM =========================================
 
-  
-main()
+for episode in range(1, MAX_EPISODES + 1):
+    if (episode > (MAX_EPISODES / 3) - 200): 
+        alpha = 0.5
+    if (episode > (MAX_EPISODES * 2 / 3)): alpha = 0.9
+    episode_score = runEpisode(MAX_TIMESTEPS, bipedalWalker, env, qLearning, episode)
+    plotEpisode(myGraph, xval, yval, episode_score, plotLine, episode)
+    print("plot_ends \n ________________________________________________________________")
+env.close()
