@@ -58,15 +58,15 @@ def plotEpisode(myGraph, xval, yval, epScore, plotLine, i):
     myGraph.savefig("./ScoreEpisodePlot")
 
 def runEpisode(MAX_TIMESTEPS, bipedalWalker, env, qLearning, episode):
-    state = bipedalWalker.normalizeState(env.reset()[0:14][0])
+    state = bipedalWalker.normalizeState(env.reset()[0][0:24])
     total_reward = 0
     print(f"\n\nEpisode {episode}: ========================================================================")
     for step in range(MAX_TIMESTEPS):
         action = qLearning.getAction(state)
         next_state , reward , terminated , truncated , _ = env.step(bipedalWalker.denormalizeAction(action))
-        next_state = bipedalWalker.normalizeState(next_state[0:14])
+        next_state = bipedalWalker.normalizeState(next_state[0:24])
         qLearning.update(state, action, next_state, reward, alpha, gamma)
-        print(f"\t\treward: {reward} for action {action}")
+        # print(f"\t\treward: {reward} for action {action}")
         total_reward += reward
         done = terminated or truncated or step == MAX_TIMESTEPS -1
         if done:

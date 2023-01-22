@@ -20,6 +20,7 @@ class QLearningAgent():
             return self.QValues[state][action]
         return 0.0
 
+#behine sazi action
     def getLegalActions(self):
       if (len(self.legalActions)):
           return self.legalActions
