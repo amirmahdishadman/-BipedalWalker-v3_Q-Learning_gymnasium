@@ -8,7 +8,7 @@ class QLearningAgent():
 
     def __init__(self, gamma, alpha):
         self.legalActions = []
-        self.QValues = defaultdict(lambda: np.zeros((10, 10, 10, 10)))
+        self.QTable = defaultdict(lambda: np.zeros((10, 10, 10, 10)))
 
     def getQValue(self, state, action):
         """
@@ -16,8 +16,8 @@ class QLearningAgent():
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        if (self.QValues[state][action]):
-            return self.QValues[state][action]
+        if (self.QTable[state][action]):
+            return self.QTable[state][action]
         return 0.0
 
 #behine sazi action
@@ -92,7 +92,7 @@ class QLearningAgent():
         qvalue = self.getQValue(state, action)
         next_value = self.getValue(nextState)
 
-        self.QValues[state][action] = ((1-alpha) * qvalue) + \
+        self.QTable[state][action] = ((1-alpha) * qvalue) + \
             (alpha * (reward + gamma * next_value))
 
     def getPolicy(self, state):
