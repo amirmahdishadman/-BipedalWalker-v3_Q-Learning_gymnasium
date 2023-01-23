@@ -92,7 +92,7 @@ class QLearningAgent():
         qvalue = self.getQValue(state, action)
         next_value = self.getValue(nextState)
 
-        self.QValues[(state, action)] = ((1-alpha) * qvalue) + \
+        self.QValues[state][action] = ((1-alpha) * qvalue) + \
             (alpha * (reward + gamma * next_value))
 
     def getPolicy(self, state):
