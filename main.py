@@ -11,33 +11,36 @@ Load_Q_table=False
 
 
 MAX_EPISODES = 1000
-MAX_TIMESTEPS = 500
+MAX_TIMESTEPS = 1200
 gamma = 0.99
 alpha = 0.1
 bipedalWalker = BipedalWalker()
 
 
 #saving commands
-# load=input("if you want load enter file name else enter no:\n")
-# save_path=input("enter the name you want save file as : \n")
+load=input("if you want load enter file name else enter no:\n")
+save_path=input("enter the name you want save file as : \n")
 
 
-# if(load=="no"):
-#     Load_Q_table=False
-# else:
-#     loaded_qtable = np.load(load,allow_pickle=True)
-#     Load_Q_table=True
+if(load=="no"):
+    Load_Q_table=False
+else:
+    loaded_qtable = np.load(load,allow_pickle=True)
+    Load_Q_table=True
 
 
-
+record_video=False
+record=input("record 100 Episode? (yes) (no)")
 visualize = input("Visualize? [y/n]\n")
 if visualize == 'y':
     RENDER_MODE = "human"
 else:
     RENDER_MODE = None
 env = gym.make("BipedalWalker-v3", render_mode=RENDER_MODE)
+if(record=="yes"):
+    env = gym.wrappers.RecordVideo(env, 'video', step_trigger = lambda x: x<=100, name_prefix='output', video_length=100)
 state , info = env.reset(seed=42)
-qLearning = QLearningAgent(gamma, alpha)
+qLearning = QLearningAgent(gamma, alpha,loaded_qtable,Load_Q_table)
 
 myGraph = graph.figure()
 xval, yval = [], []
@@ -63,6 +66,7 @@ def runEpisode(MAX_TIMESTEPS, bipedalWalker, env, qLearning, episode):
     print(f"\n\nEpisode {episode}: ========================================================================")
     for step in range(MAX_TIMESTEPS):
         action = qLearning.getAction(state)
+        # print(action)
         next_state , reward , terminated , truncated , _ = env.step(bipedalWalker.denormalizeAction(action))
         next_state = bipedalWalker.normalizeState(next_state[0:24])
         qLearning.update(state, action, next_state, reward, alpha, gamma)
@@ -92,5 +96,5 @@ for episode in range(1, MAX_EPISODES + 1):
 
 
 #saving qvalues
-# np.save(save_path, np.array(dict(qLearning.QValues)))
+np.save(save_path, np.array(dict(qLearning.QTable)))
 env.close()

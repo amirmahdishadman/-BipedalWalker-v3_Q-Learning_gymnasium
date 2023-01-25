@@ -2,35 +2,50 @@
 import numpy as np
 import random
 from collections import defaultdict, deque
-
+from itertools import chain
 
 class QLearningAgent():
-
-    def __init__(self, gamma, alpha):
+    epsilon=1
+    def __init__(self, gamma, alpha,loaded_qtable,Load_Q_table):
         self.legalActions = []
-        self.QValues = defaultdict(lambda: np.zeros((10, 10, 10, 10)))
+        self.QTable = defaultdict(lambda: np.zeros((10, 10)))
+        if(Load_Q_table):
+          self.QTable.update(loaded_qtable.item())
+          self.epsilon=0.3
 
-    def getQValue(self, state, action):
+    def getQValue(self, state):
         """
           Returns Q(state,action)
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        if (self.QValues[state][action]):
-            return self.QValues[state][action]
+        
+        if (self.QTable[state].any()):
+            return self.QTable[state]
         return 0.0
 
 #behine sazi action
-    def getLegalActions(self):
-      if (len(self.legalActions)):
-          return self.legalActions
-      max_action = 50
-      for i in range(1, max_action + 1):
+    def getLegalActions(self,state):
+      # if (len(self.legalActions)):
+      #     return self.legalActions
+      # max_action = 50
+      # for i in range(1, max_action + 1):
+      #   action = ()
+      #   for i in range(0, 2):
+      #       action += (random.randint(0, 9),)
+      #   self.legalActions.append(action)
+      # return self.legalActions
+
+      if random.random() < self.epsilon:
         action = ()
-        for i in range(0, 4):
+        for i in range (0, 2):
             action += (random.randint(0, 9),)
-        self.legalActions.append(action)
-      return self.legalActions
+      else:
+        action = np.unravel_index(np.argmax(self.QTable[state]), self.QTable[state].shape)
+
+      return action
+
+
 
     def computeValueFromQValues(self, state):
         """
@@ -39,12 +54,13 @@ class QLearningAgent():
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        qvalues = []
-        for action in self.getLegalActions():
-          qvalues.append(self.getQValue(state, action))
-        if len(qvalues) == 0:
+        # action = self.getLegalActions(state)
+        qvalues=(self.getQValue(state))
+        
+        if (qvalues) == 0.0:
           return 0.0
-        return max(qvalues)
+        print(qvalues)
+        return max(chain.from_iterable(qvalues))
 
     def computeActionFromQValues(self, state):
         """
@@ -61,18 +77,10 @@ class QLearningAgent():
         return random.choice(best_actions)
 
     def getAction(self, state):
-        """
-          Compute the action to take in the current state.  With
-          probability self.epsilon, we should take a random action and
-          take the best policy action otherwise.  Note that if there are
-          no legal actions, which is the case at the terminal state, you
-          should choose None as the action.
-          HINT: You might want to use util.flipCoin(prob)
-          HINT: To pick randomly from a list, use random.choice(list)
-        """
+
         # Pick Action
         action = None
-        action = random.choice(self.getLegalActions())
+        action = self.getLegalActions(state)
         # e-greedy for exploiting and exploring def
         # if util.flipCoin(self.epsilon):
         #     action = random.choice(legalActions)
@@ -89,11 +97,19 @@ class QLearningAgent():
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        qvalue = self.getQValue(state, action)
+        
+        qvalue = self.QTable[state][action]
         next_value = self.getValue(nextState)
-
-        self.QValues[(state, action)] = ((1-alpha) * qvalue) + \
+        #moshkel bozorg2
+        self.QTable[state][action] = ((1-alpha) * qvalue) + \
             (alpha * (reward + gamma * next_value))
+
+        # print(self.QValues[state][action])
+        if(self.epsilon>0):
+          self.epsilon-=0.001
+
+
+
 
     def getPolicy(self, state):
         policy = self.computeActionFromQValues(state)
