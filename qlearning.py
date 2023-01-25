@@ -100,7 +100,6 @@ class QLearningAgent():
         
         qvalue = self.QTable[state][action]
         next_value = self.getValue(nextState)
-        #moshkel bozorg2
         self.QTable[state][action] = ((1-alpha) * qvalue) + \
             (alpha * (reward + gamma * next_value))
 
