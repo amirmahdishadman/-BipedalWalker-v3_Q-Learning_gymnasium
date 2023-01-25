@@ -8,10 +8,10 @@ class QLearningAgent():
     epsilon=1
     def __init__(self, gamma, alpha,loaded_qtable,Load_Q_table):
         self.legalActions = []
-        self.QTable = defaultdict(lambda: np.zeros((10, 10)))
+        self.QTable = defaultdict(lambda: np.zeros((10, 10,)))
         if(Load_Q_table):
           self.QTable.update(loaded_qtable.item())
-          self.epsilon=0.3
+          self.epsilon=0.7
 
     def getQValue(self, state):
         """
@@ -42,7 +42,6 @@ class QLearningAgent():
             action += (random.randint(0, 9),)
       else:
         action = np.unravel_index(np.argmax(self.QTable[state]), self.QTable[state].shape)
-
       return action
 
 
@@ -56,11 +55,11 @@ class QLearningAgent():
         """
         # action = self.getLegalActions(state)
         qvalues=(self.getQValue(state))
-        
-        if (qvalues) == 0.0:
-          return 0.0
-        print(qvalues)
-        return max(chain.from_iterable(qvalues))
+        try:
+          if (qvalues) == 0.0:
+            return 0.0
+        except:
+          return max(chain.from_iterable(qvalues))
 
     def computeActionFromQValues(self, state):
         """
@@ -102,10 +101,10 @@ class QLearningAgent():
         next_value = self.getValue(nextState)
         self.QTable[state][action] = ((1-alpha) * qvalue) + \
             (alpha * (reward + gamma * next_value))
-
+        # print(action)
+        # print(self.QTable[state])
         # print(self.QValues[state][action])
-        if(self.epsilon>0):
-          self.epsilon-=0.001
+        
 
 
 

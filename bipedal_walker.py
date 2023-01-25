@@ -47,16 +47,16 @@ class BipedalWalker():
           action.append(nextVal)
 
 
-      actions_final.append(0.5)  
+      actions_final.append(-0.5)  
       actions_final.append(action[0])
-      actions_final.append(-0.5)
+      actions_final.append(+0.2)
       actions_final.append(action[1])
       self.binery+=1
-      if(self.binery>50):
-        actions_final[0]=-0.5
-        actions_final[2]=0.5
+      if(self.binery>35):
+        actions_final[0]=0.0
+        actions_final[2]=-0.7
         self.binery2+=1
-      if(self.binery2==50):
+      if(self.binery2==25):
         self.binery=0
         self.binery2=0
     #   print(actions_final)
