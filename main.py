@@ -1,7 +1,7 @@
 import matplotlib.pyplot as graph
 import gymnasium as gym
 from bipedal_walker import BipedalWalker
-from qlearning import QLearningAgent
+from qlearning import ApproximateQLearning
 import numpy as np
 
 #add for load saved q-tables:
@@ -40,7 +40,7 @@ env = gym.make("BipedalWalker-v3", render_mode=RENDER_MODE)
 if(record=="yes"):
     env = gym.wrappers.RecordVideo(env, 'video', step_trigger = lambda x: x<=100, name_prefix='output', video_length=100)
 state , info = env.reset(seed=42)
-qLearning = QLearningAgent(gamma, alpha,loaded_qtable,Load_Q_table)
+qLearning = ApproximateQLearning(gamma, alpha,loaded_qtable,Load_Q_table)
 
 myGraph = graph.figure()
 xval, yval = [], []
