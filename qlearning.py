@@ -11,6 +11,7 @@ class QLearningAgent():
         self.QTable = defaultdict(lambda: np.zeros((10, 10,)))
         if(Load_Q_table):
           self.QTable.update(loaded_qtable.item())
+          print(self.QTable.shape)
           self.epsilon=0.7
 
     def getQValue(self, state):

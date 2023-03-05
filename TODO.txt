@@ -1,0 +1,13 @@
+* Discretize states and actions [Done]
+* Pre-trained: start agent with the pre-trained saved file [Saving] 	[Done]
+* Plot related diagrams and charts [Done]
+* Use Epsilon Greedy [Done]
+* Optimize file size how? [Done]
+* Action optimization (10^4) -> (10^2 or 10^3) + avoid some actions [Done]
+* Some Creative codes to prevent bad states [Done]
+* Increase e-greedy algo gradually [Done]
+* Reach a good exprience state before 1000 steps [Done] fooooooooooooooooooogholadast bekhatere ziyadi fazaye state ha va memory
+* Approximate Q-Learning [done]
+* Deep QN [done]
+* Video & Slides [done]
+==============================================================================

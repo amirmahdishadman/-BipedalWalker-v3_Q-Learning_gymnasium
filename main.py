@@ -137,4 +137,5 @@ for episode in range(1, MAX_EPISODES + 1):
 
 #saving qvalues
 np.save(save_path, np.array(dict(qLearning.QTable)))
+
 env.close()
